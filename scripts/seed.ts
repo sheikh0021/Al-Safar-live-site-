@@ -1,0 +1,6 @@
+import mysql from "mysql2/promise"; import bcrypt from "bcryptjs";
+const url=process.env.DATABASE_URL;if(!url)throw new Error("DATABASE_URL is missing. Copy .env.example to .env.local first.");
+const connection=await mysql.createConnection(url);const traveler=await bcrypt.hash("pilgrim123",12);const guide=await bcrypt.hash("guide123",12);
+await connection.execute("INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,'traveler'),(?,?,?,'guide') ON DUPLICATE KEY UPDATE name=VALUES(name)",["Ayaan Khan","traveler@alsafar.com",traveler,"Yusuf Ali","guide@alsafar.com",guide]);
+const rows=[[1,"essential-umrah","Essential Umrah","Basic",74999,10,"An affordable journey with all pilgrimage essentials."],[2,"serene-journey","Serene Journey","Standard",104999,14,"Balanced comfort and carefully planned transfers."],[3,"royal-pilgrimage","Royal Pilgrimage","Premium",149999,15,"Luxury hotels and private guidance."],[4,"signature-alsafar","Signature AlSafar","Deluxe",219999,18,"Our finest door-to-door pilgrimage experience."]];
+for(const row of rows)await connection.execute("INSERT INTO packages (id,slug,name,tier,price_inr,duration_days,description) VALUES (?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE price_inr=VALUES(price_inr)",row);await connection.end();console.log("AlSafar database seeded successfully.");

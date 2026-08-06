@@ -1,0 +1,5 @@
+"use server";
+import { redirect } from "next/navigation"; import { z } from "zod";
+import { getSession } from "@/lib/auth"; import { getDb } from "@/lib/db"; import { packages } from "@/lib/packages";
+export type BookingState={error?:string};
+export async function createBooking(_:BookingState,formData:FormData):Promise<BookingState>{const user=await getSession();if(!user)redirect("/login");const parsed=z.object({packageId:z.coerce.number(),travelDate:z.string().min(1),travelers:z.coerce.number().min(1).max(10),phone:z.string().min(8)}).safeParse(Object.fromEntries(formData));if(!parsed.success)return{error:"Please complete all booking details."};const pkg=packages.find(p=>p.id===parsed.data.packageId);if(!pkg)return{error:"Package not found."};const db=getDb();if(db)await db.execute("INSERT INTO bookings (user_id, package_id, travel_date, travelers, phone, total_price, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')",[user.id,pkg.id,parsed.data.travelDate,parsed.data.travelers,parsed.data.phone,pkg.price*parsed.data.travelers]);redirect("/dashboard")}
