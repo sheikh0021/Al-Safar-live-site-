@@ -4,13 +4,13 @@ export const packages: Package[] = [
   {
     id: 1, slug: "essential-umrah", name: "Essential Umrah", tier: "Basic",
     description: "A thoughtful, affordable journey with all pilgrimage essentials covered.",
-    price: 74999, durationDays: 10, hotel: "Comfort 3-star stay", distance: "900m from Haram",
+    price: 85000, durationDays: 10, hotel: "Comfort 3-star stay", distance: "900m from Haram",
     meals: false, transport: true, accent: "sand"
   },
   {
     id: 2, slug: "serene-journey", name: "Serene Journey", tier: "Standard",
     description: "Balanced comfort, guided ziyarat and carefully planned transfers throughout.",
-    price: 104999, durationDays: 14, hotel: "Premium 4-star stay", distance: "550m from Haram",
+    price: 120000, durationDays: 14, hotel: "Premium 4-star stay", distance: "550m from Haram",
     meals: true, transport: true, featured: true, accent: "teal"
   },
   {
