@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import type { RowDataPacket } from "mysql2";
+import type { ResultSetHeader, RowDataPacket } from "mysql2";
 import { getDb } from "@/lib/db";
 import type { Role, SessionUser } from "@/lib/types";
 
@@ -20,4 +20,45 @@ export async function authenticate(email: string, password: string, role: Role):
   const user = rows[0];
   if (!user || !(await bcrypt.compare(password, user.password_hash))) return null;
   return { id: user.id, name: user.name, email: user.email, role: user.role };
+}
+
+export type CreateUserResult =
+  | { user: SessionUser }
+  | { error: string };
+
+export async function createUser(
+  name: string,
+  email: string,
+  password: string,
+  role: Role
+): Promise<CreateUserResult> {
+  const db = getDb();
+  if (!db) {
+    return { error: "Account creation needs a MySQL connection. Add DATABASE_URL to .env.local and try again." };
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const [existing] = await db.execute<RowDataPacket[]>(
+    "SELECT id FROM users WHERE email = ? LIMIT 1",
+    [normalizedEmail]
+  );
+  if (existing.length > 0) {
+    return { error: "An account with this email already exists. Please sign in instead." };
+  }
+
+  const passwordHash = await bcrypt.hash(password, 12);
+  try {
+    const [result] = await db.execute<ResultSetHeader>(
+      "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)",
+      [name.trim(), normalizedEmail, passwordHash, role]
+    );
+    return {
+      user: { id: result.insertId, name: name.trim(), email: normalizedEmail, role }
+    };
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ER_DUP_ENTRY") {
+      return { error: "An account with this email already exists. Please sign in instead." };
+    }
+    throw error;
+  }
 }

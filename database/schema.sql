@@ -36,3 +36,23 @@ CREATE TABLE IF NOT EXISTS bookings (
   CONSTRAINT fk_booking_package FOREIGN KEY (package_id) REFERENCES packages(id),
   CONSTRAINT fk_booking_guide FOREIGN KEY (guide_id) REFERENCES users(id)
 );
+
+CREATE TABLE IF NOT EXISTS booking_documents (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  booking_id INT UNSIGNED NOT NULL UNIQUE,
+  passport_number VARCHAR(20) NOT NULL,
+  aadhaar_number VARCHAR(12) NOT NULL,
+  pan_number VARCHAR(10) NOT NULL,
+  passport_file MEDIUMBLOB NOT NULL,
+  passport_file_name VARCHAR(255) NOT NULL,
+  passport_file_type VARCHAR(100) NOT NULL,
+  aadhaar_file MEDIUMBLOB NOT NULL,
+  aadhaar_file_name VARCHAR(255) NOT NULL,
+  aadhaar_file_type VARCHAR(100) NOT NULL,
+  pan_file MEDIUMBLOB NOT NULL,
+  pan_file_name VARCHAR(255) NOT NULL,
+  pan_file_type VARCHAR(100) NOT NULL,
+  payment_method ENUM('pay_in_office') NOT NULL DEFAULT 'pay_in_office',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_document_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
+);
