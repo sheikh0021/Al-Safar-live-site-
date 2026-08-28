@@ -4,11 +4,12 @@ import Link from "next/link";
 import { useActionState, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { signup, type SignupState } from "@/app/signup/actions";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 import type { Role } from "@/lib/types";
 
 const initialState: SignupState = {};
 
-export function SignupForm({ initialRole = "traveler", next }: { initialRole?: Role; next?: string }) {
+export function SignupForm({ initialRole = "traveler", next, googleError }: { initialRole?: Role; next?: string; googleError?: string }) {
   const [role, setRole] = useState<Role>(initialRole);
   const [state, action, pending] = useActionState(signup, initialState);
 
@@ -24,7 +25,8 @@ export function SignupForm({ initialRole = "traveler", next }: { initialRole?: R
     <input type="hidden" name="role" value={role}/>
     {next && <input type="hidden" name="next" value={next}/>}
 
-    {state.error && <p className="error" role="alert">{state.error}</p>}
+    {(state.error || googleError) && <p className="error" role="alert">{state.error || googleError}</p>}
+    <GoogleAuthButton role={role} next={next} mode="signup"/>
 
     <label className="field">Full name
       <input name="name" type="text" placeholder="Your full name" autoComplete="name" required minLength={2} maxLength={120}/>

@@ -7,6 +7,26 @@ import { createUser } from "@/lib/users";
 
 export type SignupState = { error?: string };
 
+function databaseSignupError(error: unknown): string {
+  const code = typeof error === "object" && error !== null && "code" in error
+    ? String(error.code)
+    : "";
+
+  if (code === "ER_ACCESS_DENIED_ERROR") {
+    return "The database rejected the configured username or password. Please update DATABASE_URL in Vercel and redeploy.";
+  }
+  if (code === "ER_BAD_DB_ERROR" || code === "ER_NO_DB_ERROR") {
+    return "The configured database was not found or selected. DATABASE_URL in Vercel must end with /alsafar.";
+  }
+  if (code === "ER_NO_SUCH_TABLE") {
+    return "The database is connected, but the users table is missing. Run database/schema.sql on the Railway database.";
+  }
+  if (["ENOTFOUND", "ETIMEDOUT", "ECONNREFUSED", "PROTOCOL_CONNECTION_LOST"].includes(code)) {
+    return "The live server could not reach Railway MySQL. Check that Vercel uses Railway’s public connection URL, then redeploy.";
+  }
+  return "We could not create your account because the live database configuration failed. Check Vercel’s DATABASE_URL and deployment logs.";
+}
+
 const signupSchema = z.object({
   name: z.string().trim().min(2).max(120),
   email: z.string().trim().email(),
@@ -41,7 +61,7 @@ export async function signup(_: SignupState, formData: FormData): Promise<Signup
     await createSession(result.user);
   } catch (error) {
     console.error("Account creation failed:", error);
-    return { error: "We could not create your account. Please check the database connection and try again." };
+    return { error: databaseSignupError(error) };
   }
 
   const destination = parsed.data.next?.startsWith("/") && !parsed.data.next.startsWith("//") ? parsed.data.next : "/dashboard";
