@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckCircle2, Compass, LocateFixed, LockKeyhole } from "lucide-react";
 import { bearingToCardinal, calculateQiblaBearing } from "@/lib/qibla";
-import type { Locale } from "@/lib/i18n";
+import { localize,type Locale } from "@/lib/i18n";
 
 type CompassPermission = "idle" | "requesting" | "active" | "unsupported" | "denied";
 type HeadingSource = "webkit" | "absolute" | "relative" | null;
@@ -15,7 +15,7 @@ const normalizeAngle = (angle: number) => (angle % 360 + 360) % 360;
 const shortestAngle = (from: number, to: number) => ((to - from + 540) % 360) - 180;
 
 export function QiblaCompass({locale="en"}:{locale?:Locale}) {
-  const h=(en:string,hi:string)=>locale==="hi"?hi:en;
+  const h=(en:string,hi:string,ur:string=en)=>localize(locale,en,hi,ur);
   const [location, setLocation] = useState<LocationResult | null>(null);
   const [heading, setHeading] = useState<number | null>(null);
   const [permission, setPermission] = useState<CompassPermission>("idle");
@@ -125,9 +125,9 @@ export function QiblaCompass({locale="en"}:{locale?:Locale}) {
   }, [enableCompass,locale]);
 
   return <section className="qibla-section" id="qibla"><div className="container"><div className="qibla-card">
-    <div className="qibla-copy"><span className="eyebrow"><Compass size={15}/> {h("Qibla finder","क़िबला खोजें")}</span><h2>{h("Turn your heart toward the Kaaba.","अपना रुख़ काबा की ओर करें।")}</h2><p>{h("Allow precise location to calculate the Qibla bearing. On supported phones, the compass moves as you turn—hold the phone flat and rotate until the gold arrow points upward.","क़िबला दिशा जानने के लिए सटीक स्थान की अनुमति दें। फ़ोन को समतल रखें और तब तक घुमाएँ जब तक सुनहरा तीर ऊपर न आए।")}</p>
-      <button className="btn btn-primary" onClick={findQibla} disabled={locating}><LocateFixed size={17}/>{locating ? h("Improving GPS accuracy…","GPS सटीकता बेहतर हो रही है…") : location ? h("Refresh precise location","सटीक स्थान अपडेट करें") : h("Find my Qibla direction","मेरी क़िबला दिशा खोजें")}</button>
-      <span className="privacy-note"><LockKeyhole size={14}/>{h("Your coordinates stay on this device and are never saved.","आपका स्थान इसी डिवाइस पर रहता है और कभी सहेजा नहीं जाता।")}</span>
+    <div className="qibla-copy"><span className="eyebrow"><Compass size={15}/> {h("Qibla finder","क़िबला खोजें","قبلہ تلاش کریں")}</span><h2>{h("Turn your heart toward the Kaaba.","अपना रुख़ काबा की ओर करें।","اپنا رخ کعبہ کی طرف کریں۔")}</h2><p>{h("Allow precise location to calculate the Qibla bearing. On supported phones, the compass moves as you turn—hold the phone flat and rotate until the gold arrow points upward.","क़िबला दिशा जानने के लिए सटीक स्थान की अनुमति दें। फ़ोन को समतल रखें और तब तक घुमाएँ जब तक सुनहरा तीर ऊपर न आए।","قبلہ کی سمت معلوم کرنے کے لیے درست مقام کی اجازت دیں۔ فون کو ہموار رکھیں اور اس وقت تک گھمائیں جب تک سنہری تیر اوپر نہ ہو۔")}</p>
+      <button className="btn btn-primary" onClick={findQibla} disabled={locating}><LocateFixed size={17}/>{locating ? h("Improving GPS accuracy…","GPS सटीकता बेहतर हो रही है…","GPS کی درستگی بہتر ہو رہی ہے…") : location ? h("Refresh precise location","सटीक स्थान अपडेट करें","درست مقام تازہ کریں") : h("Find my Qibla direction","मेरी क़िबला दिशा खोजें","میرے قبلہ کی سمت تلاش کریں")}</button>
+      <span className="privacy-note"><LockKeyhole size={14}/>{h("Your coordinates stay on this device and are never saved.","आपका स्थान इसी डिवाइस पर रहता है और कभी सहेजा नहीं जाता।","آپ کا مقام اسی ڈیوائس پر رہتا ہے اور کبھی محفوظ نہیں کیا جاتا۔")}</span>
       {locationError && <p className="qibla-error">{locationError}</p>}
     </div>
     <div className="qibla-result">
@@ -136,12 +136,12 @@ export function QiblaCompass({locale="en"}:{locale?:Locale}) {
           <div className="qibla-needle" style={{transform:`translate(-50%, -50%) rotate(${arrowRotation}deg)`}}><span className="needle-tip"/><span className="needle-line"/><span className="needle-label">{h("Qibla","क़िबला")}</span></div><div className="compass-pin"/>
         </div>
       </div>
-      {bearing === null ? <div className="qibla-reading"><strong>{h("Ready when you are","तैयार होने पर शुरू करें")}</strong><span>{h("Tap the button to use your location.","स्थान उपयोग करने के लिए बटन दबाएँ।")}</span></div> : <div className="qibla-reading"><strong>{bearing.toFixed(1)}° {h("from true north","सही उत्तर से")}</strong><span>{h(`Face ${bearingToCardinal(bearing)} toward Makkah`,"मक्का की ओर इस दिशा में रुख़ करें")}</span><small>{h("GPS accuracy: approximately","GPS सटीकता: लगभग")} {Math.round(location!.accuracy)} m{locating ? " · improving…" : ""}</small></div>}
+      {bearing === null ? <div className="qibla-reading"><strong>{h("Ready when you are","तैयार होने पर शुरू करें","تیار ہوں تو شروع کریں")}</strong><span>{h("Tap the button to use your location.","स्थान उपयोग करने के लिए बटन दबाएँ।","اپنا مقام استعمال کرنے کے لیے بٹن دبائیں۔")}</span></div> : <div className="qibla-reading"><strong>{bearing.toFixed(1)}° {h("from true north","सही उत्तर से","حقیقی شمال سے")}</strong><span>{h(`Face ${bearingToCardinal(bearing)} toward Makkah`,"मक्का की ओर इस दिशा में रुख़ करें","مکہ کی طرف اس سمت رخ کریں")}</span><small>{h("GPS accuracy: approximately","GPS सटीकता: लगभग","GPS درستگی: تقریباً")} {Math.round(location!.accuracy)} m{locating ? h(" · improving…"," · बेहतर हो रही है…"," · بہتر ہو رہی ہے…") : ""}</small></div>}
       {location && heading === null && permission === "active" && <p className="sensor-note">{h("Waiting for compass data. Move your phone in a figure-eight to calibrate it.","कम्पास डेटा की प्रतीक्षा है। कैलिब्रेट करने के लिए फ़ोन को आठ के आकार में घुमाएँ।")}</p>}
       {location && headingSource === "relative" && <p className="sensor-note sensor-warning">{h(`This browser supplied only a relative orientation, so the moving arrow may not match true north. Follow the ${bearing?.toFixed(1)}° true-north bearing with your phone’s trusted compass app.`,`इस ब्राउज़र ने केवल सापेक्ष दिशा दी है, इसलिए चलता तीर सही उत्तर से मेल नहीं खा सकता। अपने विश्वसनीय कम्पास ऐप में ${bearing?.toFixed(1)}° दिशा का पालन करें।`)}</p>}
-      {isAligned && <p className="alignment-message"><CheckCircle2 size={16}/>{h("You are facing the Qibla","आप क़िबला की ओर हैं")}</p>}
+      {isAligned && <p className="alignment-message"><CheckCircle2 size={16}/>{h("You are facing the Qibla","आप क़िबला की ओर हैं","آپ قبلہ رخ ہیں")}</p>}
       {location && permission === "unsupported" && <p className="sensor-note">{h("Live compass is unavailable on this device. Use the degree bearing with a trusted compass.","इस डिवाइस पर लाइव कम्पास उपलब्ध नहीं है। विश्वसनीय कम्पास में दिखाई गई डिग्री का उपयोग करें।")}</p>}
       {location && permission === "denied" && <p className="sensor-note">{h("Motion permission was denied. The calculated true-north bearing is still shown.","मोशन अनुमति नहीं मिली। गणना की गई सही-उत्तर दिशा फिर भी दिखाई जा रही है।")}</p>}
     </div>
-  </div><p className="qibla-disclaimer">{h("For best results, move away from magnets, metal objects and electronics. Verify with your local mosque when precision is important.","बेहतर परिणाम के लिए चुंबक, धातु और इलेक्ट्रॉनिक वस्तुओं से दूर रहें। ज़रूरी होने पर स्थानीय मस्जिद से पुष्टि करें।")}</p></div></section>;
+  </div><p className="qibla-disclaimer">{h("For best results, move away from magnets, metal objects and electronics. Verify with your local mosque when precision is important.","बेहतर परिणाम के लिए चुंबक, धातु और इलेक्ट्रॉनिक वस्तुओं से दूर रहें। ज़रूरी होने पर स्थानीय मस्जिद से पुष्टि करें।","بہتر نتیجے کے لیے مقناطیس، دھات اور الیکٹرانک اشیاء سے دور رہیں۔ ضرورت ہو تو مقامی مسجد سے تصدیق کریں۔")}</p></div></section>;
 }

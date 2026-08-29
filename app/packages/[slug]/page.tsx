@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { formatRupees, packages } from "@/lib/packages";
 import { getTranslations } from "@/lib/i18n-server";
-import { packageTranslation } from "@/lib/i18n";
+import { packageTier,packageTranslation } from "@/lib/i18n";
 
 export default async function PackageDetailsPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -17,8 +17,8 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
   return <><Header/><main className="package-detail">
     <section className={`package-detail-hero package-detail-${pkg.accent}`}>
       <div className="container package-detail-grid">
-        <div><span className="package-tag">{locale==="hi"?({Basic:"बेसिक",Standard:"स्टैंडर्ड",Premium:"प्रीमियम",Deluxe:"डीलक्स"}[pkg.tier]):pkg.tier} {t("detail.tier","package")}</span><h1>{name}</h1>
-          <p>{description} {locale==="hi"?"हर प्रमुख व्यवस्था अलसफ़र तीर्थयात्रा टीम द्वारा समन्वित की जाती है।":"Every major arrangement is coordinated by the AlSafar pilgrimage team."}</p>
+        <div><span className="package-tag">{packageTier(locale,pkg.tier)} {t("detail.tier","package")}</span><h1>{name}</h1>
+          <p>{description} {locale==="hi"?"हर प्रमुख व्यवस्था अलसफ़र तीर्थयात्रा टीम द्वारा समन्वित की जाती है।":locale==="ur"?"ہر اہم انتظام السفر کی زیارتی ٹیم مربوط کرتی ہے۔":"Every major arrangement is coordinated by the AlSafar pilgrimage team."}</p>
           <div className="detail-price">{formatRupees(pkg.price)} <small>{t("detail.per","per traveler")}</small></div>
           <Link href={`/book/${pkg.slug}`} className="btn btn-light">{t("detail.book","Book this package")} <ArrowRight size={17}/></Link>
         </div>

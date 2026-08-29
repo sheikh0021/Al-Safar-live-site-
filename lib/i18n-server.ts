@@ -2,7 +2,8 @@ import { cookies } from "next/headers";
 import { translate, type Locale } from "@/lib/i18n";
 
 export async function getLocale(): Promise<Locale> {
-  return (await cookies()).get("alsafar_locale")?.value === "hi" ? "hi" : "en";
+  const value=(await cookies()).get("alsafar_locale")?.value;
+  return value === "hi" || value === "ur" ? value : "en";
 }
 
 export async function getTranslations() {

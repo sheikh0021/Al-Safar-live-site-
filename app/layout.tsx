@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: "AlSafar — Your Sacred Journey", de
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale();
-  return <html lang={locale}><body>{children}<QuickHelp locale={locale}/></body></html>;
+  return <html lang={locale} dir={locale==="ur"?"rtl":"ltr"}><body>{children}<QuickHelp locale={locale}/></body></html>;
 }

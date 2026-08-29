@@ -9,7 +9,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
   const {locale,t}=await getTranslations();
   const role = params.role === "guide" ? "guide" : "traveler";
   const next = params.next?.startsWith("/") && !params.next.startsWith("//") ? params.next : undefined;
-  const googleError = params.googleError ? googleErrors[params.googleError] : undefined;
+  const googleError = params.googleError ? (locale==="hi"?"Google साइनअप पूरा नहीं हो सका। कृपया फिर प्रयास करें।":locale==="ur"?"Google سائن اپ مکمل نہیں ہوسکا۔ دوبارہ کوشش کریں۔":googleErrors[params.googleError]) : undefined;
 
   return <>
     <Header/>
@@ -17,7 +17,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
       <section className="auth-art">
         <div>
           <span className="eyebrow" style={{ color: "#e4c37e" }}>{t("signup.art","Your journey starts here")}</span>
-          <h1>{locale==="hi"?<>आस्था के साथ यात्रा,<br/>देखभाल के साथ मार्गदर्शन।</>:<>Travel with faith,<br/>guided with care.</>}</h1>
+          <h1>{locale==="hi"?<>आस्था के साथ यात्रा,<br/>देखभाल के साथ मार्गदर्शन।</>:locale==="ur"?<>ایمان کے ساتھ سفر،<br/>دیکھ بھال کے ساتھ رہنمائی۔</>:<>Travel with faith,<br/>guided with care.</>}</h1>
           <p>{t("signup.artCopy","Create your secure account to manage packages, bookings and journey details in one place.")}</p>
         </div>
       </section>

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function GET(request: NextRequest) {
-  const locale = request.nextUrl.searchParams.get("locale") === "hi" ? "hi" : "en";
+  const requestedLocale=request.nextUrl.searchParams.get("locale");
+  const locale = requestedLocale === "hi" || requestedLocale === "ur" ? requestedLocale : "en";
   const requestedNext = request.nextUrl.searchParams.get("next");
   const next = requestedNext?.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : "/";
   const response = NextResponse.redirect(new URL(next, request.url));
