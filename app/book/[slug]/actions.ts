@@ -18,28 +18,29 @@ function validateDocument(value: FormDataEntryValue | null, label: string): stri
 }
 
 export async function createBooking(_: BookingState, formData: FormData): Promise<BookingState> {
+  const hindi=formData.get("locale")==="hi";
   const user = await getSession();
   if (!user) redirect("/login");
-  if (user.role !== "traveler") return { error: "Only traveler accounts can book a package." };
+  if (user.role !== "traveler") return { error: hindi?"केवल यात्री खाते पैकेज बुक कर सकते हैं।":"Only traveler accounts can book a package." };
   const parsed = z.object({
     packageId: z.coerce.number(), travelDate: z.string().min(1),
     travelers: z.coerce.number().int().min(1).max(6), phone: z.string().trim().min(8).max(30),
     passportNumber: z.string().trim().min(6).max(20).regex(/^[A-Za-z0-9]+$/),
     aadhaarNumber: z.string().transform((value) => value.replace(/\s/g, "")).pipe(z.string().regex(/^\d{12}$/)),
     panNumber: z.string().trim().toUpperCase().regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/),
-    paymentMethod: z.literal("pay_in_office")
+    paymentMethod: z.literal("pay_in_office"), locale:z.enum(["en","hi"]).optional()
   }).safeParse(Object.fromEntries(formData));
-  if (!parsed.success) return { error: "Please check all journey, document, and payment details." };
+  if (!parsed.success) return { error: hindi?"कृपया यात्रा, दस्तावेज़ और भुगतान का सभी विवरण जाँचें।":"Please check all journey, document, and payment details." };
 
   const documents = [[formData.get("passportFile"), "passport document"], [formData.get("aadhaarFile"), "Aadhaar card"], [formData.get("panFile"), "PAN card"]] as const;
   for (const [file, label] of documents) {
     const error = validateDocument(file, label);
-    if (error) return { error };
+    if (error) return { error: hindi?"कृपया सभी आवश्यक दस्तावेज़ PDF, JPG या PNG में और 2 MB से कम आकार में अपलोड करें।":error };
   }
   const pkg = packages.find((item) => item.id === parsed.data.packageId);
-  if (!pkg) return { error: "Package not found." };
+  if (!pkg) return { error: hindi?"पैकेज नहीं मिला।":"Package not found." };
   const db = getDb();
-  if (!db) return { error: "Booking requires the MySQL database. Please configure DATABASE_URL first." };
+  if (!db) return { error: hindi?"बुकिंग के लिए MySQL डेटाबेस आवश्यक है। पहले DATABASE_URL कॉन्फ़िगर करें।":"Booking requires the MySQL database. Please configure DATABASE_URL first." };
   const passportFile = documents[0][0] as File;
   const aadhaarFile = documents[1][0] as File;
   const panFile = documents[2][0] as File;
@@ -72,7 +73,7 @@ export async function createBooking(_: BookingState, formData: FormData): Promis
   } catch (error) {
     await connection.rollback();
     console.error("Booking creation failed:", error);
-    return { error: "We could not save this booking. Please try again or contact AlSafar support." };
+    return { error: hindi?"बुकिंग सहेजी नहीं जा सकी। फिर प्रयास करें या अलसफ़र सहायता से संपर्क करें।":"We could not save this booking. Please try again or contact AlSafar support." };
   } finally {
     connection.release();
   }

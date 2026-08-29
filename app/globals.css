@@ -126,6 +126,8 @@ h1 { font-size:clamp(54px,6.5vw,88px); line-height:.98; letter-spacing:-.045em; 
 .auth-switch { margin-top:20px; text-align:center; color:var(--muted); font-size:14px; }
 .auth-switch a { color:var(--green); font-weight:800; }
 .role-note { margin:-3px 0 18px; padding:12px 14px; border-left:3px solid var(--gold); background:var(--cream); border-radius:0 10px 10px 0; color:var(--muted); font-size:12px; line-height:1.6; }
+.language-switcher { display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border:1px solid var(--line);border-radius:10px;color:var(--green);background:white;font-size:12px;font-weight:800;white-space:nowrap; }.language-switcher:hover { background:var(--cream); }.dashboard-nav-actions { display:flex;align-items:center;gap:12px; }
+@media(max-width:900px){.nav-links .language-switcher{display:inline-flex!important}}
 .auth-divider { display:flex;align-items:center;gap:12px;margin:22px 0 15px;color:#93a19e;font-size:12px;text-transform:uppercase;letter-spacing:.12em; }.auth-divider::before,.auth-divider::after { content:"";height:1px;background:var(--line);flex:1; }.google-button { width:100%;min-height:49px;border:1px solid var(--line);border-radius:12px;background:white;display:flex;align-items:center;justify-content:center;gap:11px;font-size:14px;font-weight:800;box-shadow:0 3px 12px rgba(0,0,0,.035); }.google-button:hover { border-color:#aebebb;background:#fafcfb; }.google-button svg { width:20px;height:20px; }
 .dashboard { min-height:100vh; background:#f4f7f5; }
 .dash-head { padding:50px 0 30px; display:flex; justify-content:space-between; align-items:flex-end; }
