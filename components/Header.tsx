@@ -10,7 +10,7 @@ export async function Header() {
   return <header className="nav"><div className="container nav-inner">
     <Link href="/" className="brand"><span className="brand-mark"><MoonStar size={19}/></span> AlSafar</Link>
     <nav className="nav-links"><Link href="/#packages">{t("nav.packages","Packages")}</Link><Link href="/#journey">{t("nav.how","How it works")}</Link><Link href="/#about">{t("nav.about","About us")}</Link><LanguageSwitcher locale={locale}/>
-      <Link className="btn btn-primary" href={user ? "/dashboard" : "/login"}>{user ? t("nav.dashboard","My dashboard") : t("nav.begin","Begin your journey")}</Link>
+      <Link className="btn btn-primary" href={user?.role === "admin" ? "/admin" : user ? "/dashboard" : "/login"}>{user ? t("nav.dashboard","My dashboard") : t("nav.begin","Begin your journey")}</Link>
     </nav>
   </div></header>;
 }

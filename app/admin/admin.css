@@ -1,0 +1,4 @@
+.admin-app + .quick-help,
+.admin-login-page + .quick-help {
+  display: none;
+}

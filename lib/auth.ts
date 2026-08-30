@@ -19,8 +19,15 @@ export async function getSession(): Promise<SessionUser | null> {
   if (!token) return null;
   try {
     const { payload } = await jwtVerify(token, secret());
-    return { id: Number(payload.id), name: String(payload.name), email: String(payload.email), role: payload.role as Role };
+    const role = payload.role;
+    if (role !== "traveler" && role !== "guide" && role !== "admin") return null;
+    return { id: Number(payload.id), name: String(payload.name), email: String(payload.email), role };
   } catch { return null; }
+}
+
+export async function getAdminSession(): Promise<SessionUser | null> {
+  const user = await getSession();
+  return user?.role === "admin" ? user : null;
 }
 
 export async function clearSession() { (await cookies()).delete(COOKIE_NAME); }

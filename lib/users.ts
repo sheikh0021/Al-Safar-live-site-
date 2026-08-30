@@ -11,6 +11,7 @@ const demoUsers = [
 export async function authenticate(email: string, password: string, role: Role): Promise<SessionUser | null> {
   const db = getDb();
   if (!db) {
+    if (role === "admin") return null;
     const user = demoUsers.find((item) => item.email === email.toLowerCase() && item.password === password && item.role === role);
     return user ? { id: user.id, name: user.name, email: user.email, role: user.role } : null;
   }
@@ -32,6 +33,7 @@ export async function createUser(
   password: string,
   role: Role
 ): Promise<CreateUserResult> {
+  if (role === "admin") return { error: "Administrator accounts cannot be created through public signup." };
   const db = getDb();
   if (!db) {
     return { error: "Account creation needs a MySQL connection. Add DATABASE_URL to .env.local and try again." };
