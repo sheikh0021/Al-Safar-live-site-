@@ -26,6 +26,7 @@ export type AdminBookingSummary = {
 export type DepartureSummary = {
   package_id: number; package_name: string; travel_date: string;
   capacity: number; booked_seats: number; seats_remaining: number;
+  guide_name: string | null; guide_email: string | null;
 };
 
 export async function getAdminDashboardData(search = "", status = "all") {
@@ -74,11 +75,13 @@ export async function getAdminDashboardData(search = "", status = "all") {
       DATE_FORMAT(b.travel_date, '%Y-%m-%d') AS travel_date,
       COALESCE(pd.capacity, 40) AS capacity,
       COALESCE(SUM(CASE WHEN b.status <> 'cancelled' THEN b.travelers ELSE 0 END), 0) AS booked_seats,
-      GREATEST(COALESCE(pd.capacity, 40) - COALESCE(SUM(CASE WHEN b.status <> 'cancelled' THEN b.travelers ELSE 0 END), 0), 0) AS seats_remaining
+      GREATEST(COALESCE(pd.capacity, 40) - COALESCE(SUM(CASE WHEN b.status <> 'cancelled' THEN b.travelers ELSE 0 END), 0), 0) AS seats_remaining,
+      dg.name AS guide_name, dg.email AS guide_email
      FROM bookings b
      JOIN packages p ON p.id = b.package_id
      LEFT JOIN package_departures pd ON pd.package_id = b.package_id AND pd.travel_date = b.travel_date
-     GROUP BY b.package_id, p.name, b.travel_date, pd.capacity
+     LEFT JOIN users dg ON dg.id = pd.guide_id AND dg.role = 'guide'
+     GROUP BY b.package_id, p.name, b.travel_date, pd.capacity, dg.name, dg.email
      ORDER BY b.travel_date ASC LIMIT 30`,
   );
   return {
@@ -111,7 +114,10 @@ export async function getAdminBooking(id: number) {
     [id],
   );
   if (!rows[0]) return null;
-  const [guides] = await db.execute<RowDataPacket[]>("SELECT id, name, email FROM users WHERE role = 'guide' ORDER BY name");
+  const [guides] = await db.execute<RowDataPacket[]>(
+    `SELECT u.id, u.name, u.email, gp.phone, gp.city, gp.languages, gp.experience_years, gp.notes
+     FROM users u LEFT JOIN guide_profiles gp ON gp.user_id = u.id WHERE u.role = 'guide' ORDER BY u.name`,
+  );
   const [notes] = await db.execute<RowDataPacket[]>(
     `SELECT n.id, n.note, DATE_FORMAT(n.created_at, '%Y-%m-%d %H:%i') AS created_at, u.name AS admin_name
      FROM booking_notes n JOIN users u ON u.id = n.admin_id WHERE n.booking_id = ? ORDER BY n.created_at DESC`, [id],
@@ -121,13 +127,29 @@ export async function getAdminBooking(id: number) {
      FROM booking_audit_log a JOIN users u ON u.id = a.admin_id WHERE a.booking_id = ? ORDER BY a.created_at DESC LIMIT 30`, [id],
   );
   const [capacity] = await db.execute<RowDataPacket[]>(
-    `SELECT COALESCE(pd.capacity, 40) AS capacity,
+    `SELECT COALESCE(pd.capacity, 40) AS capacity, pd.guide_id,
       COALESCE(SUM(CASE WHEN b.status <> 'cancelled' THEN b.travelers ELSE 0 END), 0) AS booked_seats
      FROM bookings b LEFT JOIN package_departures pd ON pd.package_id = b.package_id AND pd.travel_date = b.travel_date
      WHERE b.package_id = ? AND b.travel_date = ? GROUP BY b.package_id, b.travel_date, pd.capacity`,
     [rows[0].package_id, rows[0].travel_date],
   );
   return { booking: rows[0], guides, notes, audit, capacity: capacity[0] || { capacity: 40, booked_seats: 0 } };
+}
+
+export async function getAdminGuides() {
+  const db = getDb();
+  if (!db) throw new Error("DATABASE_URL is not configured.");
+  const [rows] = await db.execute<RowDataPacket[]>(
+    `SELECT u.id, u.name, u.email, gp.phone, gp.city, gp.languages, gp.experience_years, gp.notes,
+      COUNT(DISTINCT CONCAT(pd.package_id, '-', pd.travel_date)) AS assigned_groups
+     FROM users u
+     LEFT JOIN guide_profiles gp ON gp.user_id = u.id
+     LEFT JOIN package_departures pd ON pd.guide_id = u.id
+     WHERE u.role = 'guide'
+     GROUP BY u.id, u.name, u.email, gp.phone, gp.city, gp.languages, gp.experience_years, gp.notes
+     ORDER BY u.name`,
+  );
+  return rows;
 }
 
 export function maskDocumentNumber(value: string | null | undefined, visible = 4) {

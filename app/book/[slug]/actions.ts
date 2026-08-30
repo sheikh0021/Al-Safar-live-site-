@@ -58,9 +58,27 @@ export async function createBooking(_: BookingState, formData: FormData): Promis
       CONSTRAINT fk_document_booking FOREIGN KEY (booking_id) REFERENCES bookings(id) ON DELETE CASCADE
     )`);
     await connection.beginTransaction();
+    await connection.execute(
+      "INSERT IGNORE INTO package_departures (package_id, travel_date, capacity) VALUES (?, ?, 40)",
+      [pkg.id, parsed.data.travelDate],
+    );
+    const [departureRows] = await connection.execute<import("mysql2").RowDataPacket[]>(
+      "SELECT capacity, guide_id FROM package_departures WHERE package_id = ? AND travel_date = ? FOR UPDATE",
+      [pkg.id, parsed.data.travelDate],
+    );
+    const [seatRows] = await connection.execute<import("mysql2").RowDataPacket[]>(
+      "SELECT COALESCE(SUM(travelers), 0) AS booked_seats FROM bookings WHERE package_id = ? AND travel_date = ? AND status <> 'cancelled'",
+      [pkg.id, parsed.data.travelDate],
+    );
+    const capacity = Number(departureRows[0]?.capacity || 40);
+    const bookedSeats = Number(seatRows[0]?.booked_seats || 0);
+    if (bookedSeats + parsed.data.travelers > capacity) {
+      await connection.rollback();
+      return { error: hindi?`इस प्रस्थान में केवल ${Math.max(0,capacity-bookedSeats)} स्थान बचे हैं।`:urdu?`اس روانگی میں صرف ${Math.max(0,capacity-bookedSeats)} جگہیں باقی ہیں۔`:`Only ${Math.max(0, capacity - bookedSeats)} seats remain for this departure.` };
+    }
     const [bookingResult] = await connection.execute<import("mysql2").ResultSetHeader>(
-      "INSERT INTO bookings (user_id, package_id, travel_date, travelers, phone, total_price, status) VALUES (?, ?, ?, ?, ?, ?, 'pending')",
-      [user.id, pkg.id, parsed.data.travelDate, parsed.data.travelers, parsed.data.phone, pkg.price * parsed.data.travelers]
+      "INSERT INTO bookings (user_id, package_id, travel_date, travelers, phone, total_price, status, guide_id) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)",
+      [user.id, pkg.id, parsed.data.travelDate, parsed.data.travelers, parsed.data.phone, pkg.price * parsed.data.travelers, departureRows[0]?.guide_id || null]
     );
     bookingId = bookingResult.insertId;
     await connection.execute(

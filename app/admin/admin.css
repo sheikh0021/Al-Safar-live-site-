@@ -2,3 +2,165 @@
 .admin-login-page + .quick-help {
   display: none;
 }
+
+.admin-success {
+  margin: -10px 0 22px;
+  padding: 13px 15px;
+  border-radius: 12px;
+  background: #e4f4e9;
+  color: #286747;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-confirm-panel {
+  border-color: #b9d9ce;
+  background: linear-gradient(145deg, #ffffff, #f0f8f4);
+}
+
+.admin-confirm-panel p,
+.admin-control-copy {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.admin-confirm-panel form,
+.admin-confirm-panel button {
+  width: 100%;
+}
+
+.admin-confirm-panel small {
+  display: block;
+  margin-top: 9px;
+  color: #9a6b21;
+  font-size: 10px;
+}
+
+.admin-group-note {
+  display: grid;
+  gap: 4px;
+  margin-top: 13px;
+  padding: 12px;
+  border-radius: 11px;
+  background: #f5f8f7;
+  font-size: 11px;
+}
+
+.admin-group-note small {
+  color: var(--muted);
+}
+
+.admin-departure-guide {
+  display: grid;
+  gap: 3px;
+  margin-top: 13px;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+  color: #9a6b21;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.admin-departure-guide.assigned {
+  color: var(--green);
+}
+
+.admin-departure-guide small {
+  font-weight: 500;
+}
+
+.admin-guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.admin-guide-card {
+  margin: 0 !important;
+}
+
+.admin-guide-card-head {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 20px;
+}
+
+.admin-guide-card-head > span {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--mint);
+  color: var(--green);
+}
+
+.admin-guide-card-head strong,
+.admin-guide-card-head small {
+  display: block;
+}
+
+.admin-guide-card-head small {
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+.admin-guide-form {
+  display: grid;
+  gap: 13px;
+}
+
+.admin-guide-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.admin-guide-form label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.admin-guide-form label > input,
+.admin-guide-form label > textarea {
+  grid-column: 1 / -1;
+}
+
+.admin-guide-form input,
+.admin-guide-form textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 11px 12px;
+  background: white;
+  color: var(--ink);
+  font: inherit;
+}
+
+.admin-guide-form textarea {
+  min-height: 78px;
+  resize: vertical;
+}
+
+.admin-guide-form button {
+  justify-self: end;
+}
+
+@media (max-width: 850px) {
+  .admin-guide-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .admin-guide-fields {
+    grid-template-columns: 1fr;
+  }
+}

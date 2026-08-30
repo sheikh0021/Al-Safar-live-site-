@@ -15,6 +15,8 @@ export async function middleware(request: NextRequest) {
     const { payload } = await jwtVerify(token, secret);
     if (isAdminRoute && payload.role !== "admin") return NextResponse.redirect(new URL("/admin/login", request.url));
     if (request.nextUrl.pathname.startsWith("/dashboard") && payload.role === "admin") return NextResponse.redirect(new URL("/admin", request.url));
+    if (request.nextUrl.pathname.startsWith("/dashboard") && payload.role === "guide") return NextResponse.redirect(new URL("/guide-dashboard", request.url));
+    if (request.nextUrl.pathname.startsWith("/guide-dashboard") && payload.role !== "guide") return NextResponse.redirect(new URL(payload.role === "admin" ? "/admin" : "/dashboard", request.url));
   } catch {
     const response = NextResponse.redirect(new URL(isAdminRoute ? "/admin/login" : "/login", request.url));
     response.cookies.delete("alsafar_session");
@@ -23,4 +25,4 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/dashboard/:path*", "/book/:path*", "/admin/:path*"] };
+export const config = { matcher: ["/dashboard/:path*", "/guide-dashboard/:path*", "/book/:path*", "/admin/:path*"] };

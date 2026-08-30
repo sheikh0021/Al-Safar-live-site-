@@ -29,6 +29,10 @@ function refresh(bookingId: number) {
 export async function updateBookingStatus(formData: FormData) {
   const parsed = z.object({ bookingId: z.coerce.number().int().positive(), status: z.enum(bookingStatuses) }).parse(Object.fromEntries(formData));
   const { admin, db } = await context();
+  if (parsed.status === "confirmed") {
+    const [rows] = await db.execute<import("mysql2").RowDataPacket[]>("SELECT guide_id FROM bookings WHERE id = ? LIMIT 1", [parsed.bookingId]);
+    if (!rows[0]?.guide_id) redirect(`/admin/bookings/${parsed.bookingId}?error=guide-required`);
+  }
   await db.execute("UPDATE bookings SET status = ? WHERE id = ?", [parsed.status, parsed.bookingId]);
   await audit(parsed.bookingId, admin.id, "booking_status_changed", `Status changed to ${parsed.status}.`);
   refresh(parsed.bookingId);
@@ -45,9 +49,33 @@ export async function assignGuide(formData: FormData) {
     if (!guides[0]) throw new Error("The selected guide is invalid.");
     guideName = guides[0].name;
   }
-  await db.execute("UPDATE bookings SET guide_id = ? WHERE id = ?", [guideId, parsed.bookingId]);
-  await audit(parsed.bookingId, admin.id, "guide_assignment_changed", `Guide: ${guideName}.`);
+  const [bookings] = await db.execute<import("mysql2").RowDataPacket[]>("SELECT package_id, travel_date FROM bookings WHERE id = ? LIMIT 1", [parsed.bookingId]);
+  if (!bookings[0]) throw new Error("Booking not found.");
+  const { package_id: packageId, travel_date: travelDate } = bookings[0];
+  await db.execute(
+    `INSERT INTO package_departures (package_id, travel_date, capacity, guide_id) VALUES (?, ?, 40, ?)
+     ON DUPLICATE KEY UPDATE guide_id = VALUES(guide_id)`,
+    [packageId, travelDate, guideId],
+  );
+  await db.execute("UPDATE bookings SET guide_id = ? WHERE package_id = ? AND travel_date = ?", [guideId, packageId, travelDate]);
+  await db.execute(
+    `INSERT INTO booking_audit_log (booking_id, admin_id, action, details)
+     SELECT id, ?, 'group_guide_assignment_changed', ? FROM bookings WHERE package_id = ? AND travel_date = ?`,
+    [admin.id, `Departure group guide: ${guideName}.`, packageId, travelDate],
+  );
   refresh(parsed.bookingId);
+}
+
+export async function confirmBooking(formData: FormData) {
+  const parsed = z.object({ bookingId: z.coerce.number().int().positive() }).parse(Object.fromEntries(formData));
+  const { admin, db } = await context();
+  const [rows] = await db.execute<import("mysql2").RowDataPacket[]>("SELECT guide_id FROM bookings WHERE id = ? LIMIT 1", [parsed.bookingId]);
+  if (!rows[0]) throw new Error("Booking not found.");
+  if (!rows[0].guide_id) redirect(`/admin/bookings/${parsed.bookingId}?error=guide-required`);
+  await db.execute("UPDATE bookings SET status = 'confirmed' WHERE id = ?", [parsed.bookingId]);
+  await audit(parsed.bookingId, admin.id, "booking_confirmed", "The administrator confirmed the booking after guide assignment.");
+  revalidatePath("/admin");
+  redirect(`/admin/bookings/${parsed.bookingId}?message=confirmed`);
 }
 
 export async function reviewDocument(formData: FormData) {
@@ -97,4 +125,24 @@ export async function updateDepartureCapacity(formData: FormData) {
   );
   await audit(parsed.bookingId, admin.id, "departure_capacity_changed", `Capacity changed to ${parsed.capacity}.`);
   refresh(parsed.bookingId);
+}
+
+export async function updateGuideProfile(formData: FormData) {
+  const parsed = z.object({
+    guideId: z.coerce.number().int().positive(), name: z.string().trim().min(2).max(120),
+    phone: z.string().trim().max(30).optional(), city: z.string().trim().max(100).optional(),
+    languages: z.string().trim().max(255).optional(), experienceYears: z.union([z.literal(""), z.coerce.number().int().min(0).max(80)]),
+    notes: z.string().trim().max(2000).optional(),
+  }).parse(Object.fromEntries(formData));
+  const { db } = await context();
+  const [result] = await db.execute<import("mysql2").ResultSetHeader>("UPDATE users SET name = ? WHERE id = ? AND role = 'guide'", [parsed.name, parsed.guideId]);
+  if (result.affectedRows !== 1) throw new Error("Guide account not found.");
+  await db.execute(
+    `INSERT INTO guide_profiles (user_id, phone, city, languages, experience_years, notes)
+     VALUES (?, ?, ?, ?, ?, ?)
+     ON DUPLICATE KEY UPDATE phone = VALUES(phone), city = VALUES(city), languages = VALUES(languages), experience_years = VALUES(experience_years), notes = VALUES(notes)`,
+    [parsed.guideId, parsed.phone || null, parsed.city || null, parsed.languages || null, parsed.experienceYears === "" ? null : parsed.experienceYears, parsed.notes || null],
+  );
+  revalidatePath("/admin/guides");
+  revalidatePath("/admin");
 }

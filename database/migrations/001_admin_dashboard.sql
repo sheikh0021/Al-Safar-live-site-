@@ -48,8 +48,20 @@ CREATE TABLE IF NOT EXISTS package_departures (
   package_id INT UNSIGNED NOT NULL,
   travel_date DATE NOT NULL,
   capacity SMALLINT UNSIGNED NOT NULL DEFAULT 40,
+  guide_id INT UNSIGNED NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   UNIQUE KEY uq_package_departure (package_id, travel_date),
   CONSTRAINT fk_departure_package FOREIGN KEY (package_id) REFERENCES packages(id)
+);
+
+CREATE TABLE IF NOT EXISTS guide_profiles (
+  user_id INT UNSIGNED PRIMARY KEY,
+  phone VARCHAR(30) NULL,
+  city VARCHAR(100) NULL,
+  languages VARCHAR(255) NULL,
+  experience_years SMALLINT UNSIGNED NULL,
+  notes TEXT NULL,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_guide_profile_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, CheckCircle2, Download, FileText, Mail, MessageSquareText, Phone, Save, ShieldCheck, UserRoundCheck, WalletCards } from "lucide-react";
-import { addBookingNote, assignGuide, reviewDocument, updateBookingStatus, updateDepartureCapacity, updatePayment } from "@/app/admin/actions";
+import { addBookingNote, assignGuide, confirmBooking, reviewDocument, updateBookingStatus, updateDepartureCapacity, updatePayment } from "@/app/admin/actions";
 import { bookingStatuses, documentStatuses, getAdminBooking, maskDocumentNumber, statusLabels, type BookingStatus, type DocumentStatus } from "@/lib/admin";
 import { formatRupees } from "@/lib/packages";
 
 const documentLabels = { passport: "Passport", aadhaar: "Aadhaar card", pan: "PAN card" } as const;
 
-export default async function AdminBookingPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AdminBookingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ message?: string; error?: string }> }) {
   const id = Number((await params).id);
   if (!Number.isInteger(id) || id < 1) notFound();
   const data = await getAdminBooking(id);
@@ -15,10 +15,13 @@ export default async function AdminBookingPage({ params }: { params: Promise<{ i
   const { booking, guides, notes, audit, capacity } = data;
   const reference = `ALS-${String(id).padStart(5, "0")}`;
   const seatsRemaining = Math.max(0, Number(capacity.capacity) - Number(capacity.booked_seats));
+  const feedback = await searchParams;
 
   return <div className="admin-container">
     <Link href="/admin" className="admin-back"><ArrowLeft size={17}/>Back to all bookings</Link>
     <section className="admin-detail-heading"><div><span className="eyebrow">Booking {reference}</span><h1>{booking.traveler_name}</h1><p>{booking.package_name} · {booking.travel_date} · Created {booking.created_at}</p></div><span className={`admin-badge admin-large-badge status-${booking.status}`}>{statusLabels[booking.status as BookingStatus]}</span></section>
+    {feedback.message === "confirmed" && <p className="admin-success">Booking confirmed successfully. The departure-group guide remains assigned to every traveler in this group.</p>}
+    {feedback.error === "guide-required" && <p className="error">Assign a local guide to this departure group before confirming the booking.</p>}
 
     <div className="admin-detail-grid">
       <div className="admin-detail-main">
@@ -38,9 +41,11 @@ export default async function AdminBookingPage({ params }: { params: Promise<{ i
       </div>
 
       <aside className="admin-detail-sidebar">
+        <section className="admin-panel admin-confirm-panel"><h2>Confirm this booking</h2><p>A departure-group guide must be assigned first.</p><form action={confirmBooking}><input type="hidden" name="bookingId" value={id}/><button className="btn btn-primary" disabled={!booking.guide_id || booking.status === "confirmed" || booking.status === "completed"}>{booking.status === "confirmed" || booking.status === "completed" ? <><CheckCircle2 size={16}/>Booking confirmed</> : <><CheckCircle2 size={16}/>Confirm booking</>}</button></form>{!booking.guide_id && <small>Select the group guide below to enable confirmation.</small>}</section>
+
         <section className="admin-panel"><h2>Booking controls</h2><form action={updateBookingStatus} className="admin-control-form"><input type="hidden" name="bookingId" value={id}/><label>Status<select name="status" defaultValue={booking.status}>{bookingStatuses.map((value) => <option key={value} value={value}>{statusLabels[value]}</option>)}</select></label><button className="btn btn-primary"><Save size={15}/>Update status</button></form></section>
 
-        <section className="admin-panel"><h2><UserRoundCheck size={20}/>Local guide</h2><form action={assignGuide} className="admin-control-form"><input type="hidden" name="bookingId" value={id}/><label>Assigned guide<select name="guideId" defaultValue={booking.guide_id || ""}><option value="">Not assigned</option>{guides.map((guide) => <option key={guide.id} value={guide.id}>{guide.name} · {guide.email}</option>)}</select></label><button className="btn btn-primary"><Save size={15}/>Save assignment</button></form></section>
+        <section className="admin-panel"><h2><UserRoundCheck size={20}/>Departure-group guide</h2><p className="admin-control-copy">One guide serves this entire {booking.package_name} group departing on {booking.travel_date}. Assigning a guide here updates every booking in the group.</p><form action={assignGuide} className="admin-control-form"><input type="hidden" name="bookingId" value={id}/><label>Assigned guide<select name="guideId" defaultValue={capacity.guide_id || booking.guide_id || ""}><option value="">Not assigned</option>{guides.map((guide) => <option key={guide.id} value={guide.id}>{guide.name} · {guide.city || "City not added"} · {guide.phone || guide.email}</option>)}</select></label><button className="btn btn-primary"><Save size={15}/>Assign to whole group</button></form><div className="admin-group-note"><strong>{Number(capacity.booked_seats)} travelers currently in this group</strong><small>Capacity: {Number(capacity.capacity)} · Remaining: {seatsRemaining}</small></div></section>
 
         <section className="admin-panel"><h2><WalletCards size={20}/>Office payment</h2><div className={`admin-payment-state ${booking.payment_status}`}><span>{booking.payment_status === "received" ? <CheckCircle2/> : <WalletCards/>}</span><div><strong>{booking.payment_status === "received" ? "Payment received" : "Payment pending"}</strong><small>{booking.payment_received_at || "No office payment recorded"}</small></div></div><form action={updatePayment} className="admin-payment-actions"><input type="hidden" name="bookingId" value={id}/>{booking.payment_status === "received" ? <button className="btn btn-outline" name="paymentStatus" value="pending">Mark pending</button> : <button className="btn btn-primary" name="paymentStatus" value="received">Confirm payment received</button>}</form></section>
 

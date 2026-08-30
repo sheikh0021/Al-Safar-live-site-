@@ -1,0 +1,71 @@
+.guide-group {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 15px;
+  padding: 18px 0;
+  border-top: 1px solid #edf1ef;
+}
+
+.guide-group strong,
+.guide-group small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.guide-group small {
+  margin-top: 5px;
+  color: var(--muted);
+}
+
+.guide-group > div:last-child {
+  text-align: right;
+}
+
+.guide-help-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 22px 0 80px;
+  padding: 22px;
+  border-radius: 18px;
+  background: var(--deep);
+  color: white;
+}
+
+.guide-help-card p {
+  margin: 6px 0 0;
+  color: #abc2bd;
+  font-size: 12px;
+}
+
+.guide-help-card > div:last-child {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.guide-help-card a {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 650px) {
+  .guide-group {
+    grid-template-columns: auto 1fr;
+  }
+
+  .guide-group > div:last-child {
+    grid-column: 2;
+    text-align: left;
+  }
+
+  .guide-help-card,
+  .guide-help-card > div:last-child {
+    display: grid;
+  }
+}
