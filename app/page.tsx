@@ -6,12 +6,13 @@ import { PackageCard } from "@/components/PackageCard";
 import { packages } from "@/lib/packages";
 import { PrayerTimes } from "@/components/PrayerTimes";
 import { QiblaCompass } from "@/components/QiblaCompass";
+import { DailyBlessing } from "@/components/DailyBlessing";
 import { getTranslations } from "@/lib/i18n-server";
 
 export default async function Home() {
   const {locale,t}=await getTranslations();
   return <><Header/><main>
-    <section className="hero"><div className="container hero-grid"><div>
+    <section className="hero"><DailyBlessing locale={locale}/><div className="container hero-grid"><div>
       <span className="eyebrow"><Star size={14} fill="currentColor"/> {t("hero.eyebrow","Journeys made with intention")}</span>
       <h1>{t("hero.title1","Your sacred journey,")} <em>{t("hero.title2","beautifully planned.")}</em></h1>
       <p className="hero-copy">{t("hero.copy","From the first prayer to the final farewell, AlSafar takes care of every detail—so you can focus on what truly matters.")}</p>
