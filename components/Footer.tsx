@@ -22,6 +22,7 @@ export async function Footer() {
             <div>
               <strong>{t("footer.support", "Support")}</strong>
               <a href="tel:+917771842703">+91 77718 42703</a>
+              <a href="https://wa.me/917771842703" target="_blank" rel="noopener noreferrer">{t("footer.whatsapp", "WhatsApp")}</a>
               <a href="mailto:sheikhrehan2121@gmail.com">sheikhrehan2121@gmail.com</a>
               <span>{t("footer.hours", "Mon–Sat, 9am–7pm")}</span>
             </div>
