@@ -4,6 +4,16 @@ import { FormEvent, useEffect, useRef, useState } from "react";
 import { Bot, Mail, MessageCircle, Phone, Send, X } from "lucide-react";
 import type { Locale } from "@/lib/i18n";
 
+export const WHATSAPP_CHAT_URL = "https://wa.me/917771842703";
+
+function WhatsAppIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.91-7.02Zm-7.01 15.24h-.01a8.2 8.2 0 0 1-4.18-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.2 8.2 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.23 8.23Zm4.51-6.16c-.25-.12-1.47-.72-1.7-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.35-.76-1.84-.2-.48-.4-.42-.56-.42h-.48c-.17 0-.43.06-.66.31-.23.25-.87.85-.87 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18-.06-.10-.23-.17-.48-.29Z"/>
+    </svg>
+  );
+}
+
 type Message = { id: number; from: "assistant" | "user"; text: string };
 
 const topics = ["Compare packages", "Booking process", "Required documents", "Prayer & Qibla", "Talk to our team"];
@@ -54,8 +64,11 @@ export function QuickHelp({locale="en"}:{locale?:Locale}) {
       <div className="help-messages" ref={listRef} aria-live="polite">{messages.map((message) => <div className={`help-message ${message.from}`} key={message.id}>{message.text}</div>)}</div>
       <div className="help-topics">{shownTopics.map((topic) => <button key={topic} onClick={() => ask(topic)}>{topic}</button>)}</div>
       <form className="help-form" onSubmit={submit}><input value={input} onChange={(event) => setInput(event.target.value)} placeholder={pick("Ask a quick question…","एक सवाल पूछें…","فوری سوال پوچھیں…")} aria-label="Ask a quick question" maxLength={300}/><button aria-label="Send question" disabled={!input.trim()}><Send size={18}/></button></form>
-      <footer className="help-contact"><a href="tel:+917771842703"><Phone size={14}/>{pick("Call team","टीम को कॉल करें","ٹیم کو کال کریں")}</a><a href="mailto:sheikhrehan2121@gmail.com"><Mail size={14}/>{pick("Email","ईमेल","ای میل")}</a><span>{pick("Guidance only—verify important travel details.","केवल मार्गदर्शन—महत्वपूर्ण यात्रा विवरण की पुष्टि करें।","صرف رہنمائی—اہم سفری تفصیلات کی تصدیق کریں۔")}</span></footer>
+      <footer className="help-contact"><a href="tel:+917771842703"><Phone size={14}/>{pick("Call team","टीम को कॉल करें","ٹیم کو کال کریں")}</a><a href={WHATSAPP_CHAT_URL} target="_blank" rel="noopener noreferrer"><WhatsAppIcon/>{pick("WhatsApp","व्हाट्सऐप","واٹس ایپ")}</a><a href="mailto:sheikhrehan2121@gmail.com"><Mail size={14}/>{pick("Email","ईमेल","ای میل")}</a><span>{pick("Guidance only—verify important travel details.","केवल मार्गदर्शन—महत्वपूर्ण यात्रा विवरण की पुष्टि करें।","صرف رہنمائی—اہم سفری تفصیلات کی تصدیق کریں۔")}</span></footer>
     </section>}
+    <a className="whatsapp-launcher" href={WHATSAPP_CHAT_URL} target="_blank" rel="noopener noreferrer" aria-label={pick("Chat on WhatsApp","व्हाट्सऐप पर बात करें","واٹس ایپ پر بات کریں")}>
+      <WhatsAppIcon/><span>{pick("WhatsApp","व्हाट्सऐप","واٹس ایپ")}</span>
+    </a>
     <button className="help-launcher" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-label={open ? "Close quick help" : "Open quick help"}>{open ? <X size={23}/> : <MessageCircle size={24}/>}<span>{open ? pick("Close","बंद करें","بند کریں") : pick("Quick Help","त्वरित सहायता","فوری مدد")}</span></button>
   </div>;
 }
