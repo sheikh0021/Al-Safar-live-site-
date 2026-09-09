@@ -32,15 +32,16 @@ export function getPrayerTimesSnapshot(latitude: number, longitude: number, loca
   parameters.madhab = Madhab.Hanafi;
   const now = new Date();
   const times = new AdhanPrayerTimes(new Coordinates(latitude, longitude), now, parameters);
-  const prayers = [
+  type PrayerSlot = { name: "Fajr" | "Dhuhr" | "Asr" | "Maghrib" | "Isha"; time: Date };
+  const prayers: PrayerSlot[] = [
     { name: "Fajr", time: times.fajr },
     { name: "Dhuhr", time: times.dhuhr },
     { name: "Asr", time: times.asr },
     { name: "Maghrib", time: times.maghrib },
     { name: "Isha", time: times.isha },
-  ] as const;
+  ];
 
-  let next = prayers[0];
+  let next: PrayerSlot = prayers[0];
   for (const prayer of prayers) {
     if (prayer.time > now) {
       next = prayer;
